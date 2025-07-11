@@ -1,13 +1,15 @@
-# Sample Hardhat Project
+# Locked Vault and Proxy Smart Contracts
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a Hardhat Ignition module that deploys that contract.
+These smart contracts are practice contracts meant to relearn smart contract development fundamentals:
 
-Try running some of the following tasks:
+These contracts use: 
+1. Ownable
+2. Custom errors
+3. Gas optimization
+4. Delegate call
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat ignition deploy ./ignition/modules/Lock.js
-```
+Next iterations of this contract will feature:
+1. Security
+2. Upgradability
+3. Tests
+4. Deployment
