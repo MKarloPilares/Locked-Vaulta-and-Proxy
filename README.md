@@ -7,7 +7,7 @@ These contracts use:
 2. Custom errors
 3. Gas optimization
 4. Delegate call 
-5. Upgradability
+5. EIP1967
 
 Next iterations of this contract will feature:
 1. Security
