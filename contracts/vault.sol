@@ -4,11 +4,10 @@ pragma solidity ^0.8.28;
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Vault is Ownable {
-    
-    constructor() Ownable(msg.sender) {}
+contract Vault is Initializable, OwnableUpgradeable {
 
     error StillLocked(uint256 deadline);
     error InsufficientBalance(uint256 balance, uint256 withdrawalAmount);
@@ -17,7 +16,11 @@ contract Vault is Ownable {
     event Unlock(uint256 deadline);
     event Withdraw (uint256 amount);
 
-    uint256 deadline;
+    uint256 public deadline;
+
+    function initialize(address initialOwner) external initializer(){
+        __Ownable_init(initialOwner);
+    }
 
     function deposit() external payable onlyOwner {
         emit Deposit(msg.value);

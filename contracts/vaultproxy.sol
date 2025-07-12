@@ -6,44 +6,98 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LockedVault is Ownable {
-    
-    constructor() Ownable(msg.sender) {}
-    
+contract LockedVault {
+    bytes32 internal constant _IMPLEMENTATION_SLOT = bytes32(
+        uint256(keccak256("eip1967.proxy.implementation")) - 1
+    );
+
     event DelegateCallResponse(bool success, bytes data);
+    event Upgraded(address newLogic);
 
-    uint256 deadline;
+    uint256 public deadline;
+    address owner;
 
-    function CallDeposit(address _contract) external payable onlyOwner {
-        (bool success, bytes memory data) = _contract.delegatecall(
-            abi.encodeWithSignature("deposit()")
-        );
+    
+    constructor(address _logic, bytes memory _data) {
+        owner = msg.sender;
 
-        emit DelegateCallResponse(success, data);
+        _setImplementation(_logic);
+
+        if (_data.length > 0) {
+            (bool success,) = _logic.delegatecall(_data);
+            require(success, "Init failed");
+        }
     }
 
-    function CallUnlock(address _contract) external onlyOwner {
-        (bool success, bytes memory data) = _contract.delegatecall(
-            abi.encodeWithSignature("startUnlockTimer()")
-        );
+    //===========================
+    // MODIFIER
+    //===========================
+    
+    modifier onlyOwner() {
+        require(owner == msg.sender, "Only owner can call this function");
+        _;
+    }
+    
+    //===========================
+    // Upgradability
+    //===========================
 
-        emit DelegateCallResponse(success, data);
+    function _setImplementation(address newImpl) internal {
+        bytes32 slot = _IMPLEMENTATION_SLOT;
+        assembly {
+            sstore(slot, newImpl)
+            }
+
+            emit Upgraded(newImpl);
+        }
+
+    function _implementation() internal view returns (address impl) {
+        bytes32 slot = _IMPLEMENTATION_SLOT;
+        assembly{
+            impl := sload(slot)
+        }
     }
 
-    function CallWithdraw(address _contract, uint256 amount) external onlyOwner {
-        (bool success, bytes memory data) = _contract.delegatecall(
-            abi.encodeWithSignature("withdraw(uint256)", amount)
-        );
-
-        emit DelegateCallResponse(success, data);
+    function upgrade(address newImpl) external onlyOwner {
+        _setImplementation(newImpl);
     }
 
-    function CallChangeOwner(address _contract, address newOwner) external onlyOwner {
-        (bool success, bytes memory data) = _contract.delegatecall(
-            abi.encodeWithSignature("changeOwner(address)", newOwner)
-        );
+    //======================
+    // OWNERSHIP
+    //======================
 
-        emit DelegateCallResponse(success, data);
+    function changeOwner(address newOwner) external onlyOwner {
+        owner = newOwner;
+    }
+
+    //======================
+    // PROXY
+    //======================
+
+    function _delegate(address impl) internal {
+        assembly {
+            calldatacopy(0, 0, calldatasize())
+
+            let result := delegatecall(gas(), impl, 0, calldatasize(), 0, 0)
+
+            returndatacopy(0, 0, returndatasize())
+
+            switch result
+            case 0 {
+                revert(0, returndatasize())
+            }
+            default {
+                return(0, returndatasize())
+            }
+        }
+    }
+
+    fallback() external payable {
+        _delegate(_implementation());
+    }
+
+    receive() external payable {
+        _delegate(_implementation());
     }
 
 }
