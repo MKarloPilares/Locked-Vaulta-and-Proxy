@@ -4,9 +4,7 @@ pragma solidity ^0.8.28;
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-
-contract LockedVault {
+contract LockedVault  {
     bytes32 internal constant _IMPLEMENTATION_SLOT = bytes32(
         uint256(keccak256("eip1967.proxy.implementation")) - 1
     );
