@@ -6,8 +6,12 @@ pragma solidity ^0.8.28;
 
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
-contract Vault is Initializable, OwnableUpgradeable {
+contract Vault is 
+    Initializable, 
+    OwnableUpgradeable, 
+    ReentrancyGuardUpgradeable {
 
     error StillLocked(uint256 deadline);
     error InsufficientBalance(uint256 balance, uint256 withdrawalAmount);
@@ -20,6 +24,7 @@ contract Vault is Initializable, OwnableUpgradeable {
 
     function initialize(address initialOwner) external initializer(){
         __Ownable_init(initialOwner);
+        __ReentrancyGuard_init();
     }
 
     function deposit() external payable onlyOwner {
@@ -32,8 +37,8 @@ contract Vault is Initializable, OwnableUpgradeable {
         emit Unlock(deadline);
     }
 
-    function withdraw(uint256 amount) external onlyOwner {
-        if (block.timestamp >= deadline) {
+    function withdraw(uint256 amount) external onlyOwner nonReentrant{
+        if (block.timestamp < deadline) {
             revert StillLocked(deadline);
         }
 
@@ -48,6 +53,7 @@ contract Vault is Initializable, OwnableUpgradeable {
     }
 
     function changeOwner(address newOwner) external onlyOwner{
+        require(newOwner != address(0), "Invalid owner");
         transferOwnership(newOwner);
     }
 
