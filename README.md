@@ -8,9 +8,9 @@ These contracts use:
 3. Gas optimization
 4. Delegate call 
 5. EIP1967
+6. Reentrancy Guard
 
 Next iterations of this contract will feature:
-1. Security
 3. Tests
 4. Deployment
 
@@ -20,3 +20,4 @@ LEARNINGS:
 3. Gas optimization
 4. Upgradability with EIP1967
 5. Relearned delegate call
+6. Reentrancy and protection
